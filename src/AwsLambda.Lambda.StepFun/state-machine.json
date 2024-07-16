@@ -1,0 +1,147 @@
+{
+  "Comment": "State Machine",
+  "StartAt": "ProcessBillPay",
+  "States": {
+    "ProcessBillpay": {
+      "Type": "Task",
+      "Resource": "${ProcessBillPayTask.Arn}",
+      "ResultPath": "$.billpayResult",
+      "Next": "CheckExtraFields"
+    },
+    "CheckExtraFields": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.billpayResult.IsExtraInfo",
+          "BooleanEquals": false,
+          "Next": "RequestPrimaryBillDetails"
+        },
+        {
+          "Variable": "$.billpayResult.IsExtraInfo",
+          "BooleanEquals": true,
+          "Next": "RequestExtraFields"
+        },
+        {
+          "Variable": "$.billpayResult.IsCompliance",
+          "BooleanEquals": true,
+          "Next": "RequestComplianceWithExtraFeilds"
+        }
+      ]
+    },
+    "RequestPrimaryBillDetails": {
+      "Type": "Task",
+      "Resource": "${RequestPrimaryBillDetails.Arn}",
+      "Next": "ValidatePrimaryBillDetails"
+    },
+    "ValidatePrimaryBillDetails": {
+      "Type": "Task",
+      "Resource": "${ValidatePrimaryBillDetails.Arn}",
+      "Retry": [
+        {
+          "ErrorEquals": [ "States.ALL" ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 5,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "ProcessTransaction"
+    },
+    "RequestExtraFields": {
+      "Type": "Task",
+      "Resource": "${RequestExtraFields.Arn}",
+      "Next": "ValidateExtraFields"
+    },
+    "ValidateExtraFields": {
+      "Type": "Task",
+      "Resource": "${ValidateExtraFields.Arn}",
+      "Retry": [
+        {
+          "ErrorEquals": [ "States.ALL" ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 5,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "RequestPrimaryBillDetailsFromExtra"
+    },
+    "RequestPrimaryBillDetailsFromExtra": {
+      "Type": "Task",
+      "Resource": "${RequestPrimaryBillDetailsFromExtra.Arn}",
+      "Next": "ValidatePrimaryBillDetailsFromExtra"
+    },
+    "ValidatePrimaryBillDetailsFromExtra": {
+      "Type": "Task",
+      "Resource": "${ValidatePrimaryBillDetailsFromExtra.Arn}",
+      "Retry": [
+        {
+          "ErrorEquals": [ "States.ALL" ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 5,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "ProcessTransaction"
+    },
+    "RequestComplianceWithExtraFeilds": {
+      "Type": "Task",
+      "Resource": "${RequestCompliance.Arn}",
+      "Next": "ValidateComplianceWithExtraFeilds"
+    },
+    "ValidateComplianceWithExtraFeilds": {
+      "Type": "Task",
+      "Resource": "${ValidateComplianceWithExtraFeilds.Arn}",
+      "Retry": [
+        {
+          "ErrorEquals": [ "States.ALL" ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 5,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "RequestPrimaryBillDetailsFromCompliance"
+    },
+    "RequestPrimaryBillDetailsFromCompliance": {
+      "Type": "Task",
+      "Resource": "${RequestPrimaryBillDetailsFromCompliance.Arn}",
+      "Next": "ValidatePrimaryBillDetailsFromCompliance"
+    },
+    "ValidatePrimaryBillDetailsFromCompliance": {
+      "Type": "Task",
+      "Resource": "${ValidatePrimaryBillDetailsFromCompliance.Arn}",
+      "Retry": [
+        {
+          "ErrorEquals": [ "States.ALL" ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 5,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "RequestComplianceInfo"
+    },
+    "RequestComplianceInfo": {
+      "Type": "Task",
+      "Resource": "${RequestComplianceInfo.Arn}",
+      "Next": "ValidateComplianceInfo"
+    },
+    "ValidateComplianceInfo": {
+      "Type": "Task",
+      "Resource": "${ValidateComplianceInfo.Arn}",
+      "Retry": [
+        {
+          "ErrorEquals": [ "States.ALL" ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 5,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "ProcessTransaction"
+    },
+    "ProcessTransaction": {
+      "Type": "Task",
+      "Resource": "${ProcessTransaction.Arn}",
+      "End": true
+    },
+
+   
+  }
+}
